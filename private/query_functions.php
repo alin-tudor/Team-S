@@ -182,6 +182,77 @@ function edit_patient($id, $new_nhs_number, $new_first_name, $new_last_name, $ne
 
 
 }
+
+function find_all_appointments() {
+    global $db;
+    $sql = "SELECT * FROM appointments ";
+    $sql .= "ORDER BY id ASC";
+    $result = mysqli_query($db, $sql);
+    confirm_result_set($result);
+    return $result;
+}
+
+function delete_appointment($id)
+{
+    global $db;
+    $sql = "DELETE FROM appointments ";
+    $sql .= "WHERE id='" . db_escape($db, $id) . "' ";
+    $sql .= "LIMIT 1";
+    $result = mysqli_query($db, $sql);
+    if ($result) {
+        return true;
+    } else {
+        // DELETE failed
+        echo mysqli_error($db);
+        db_disconnect($db);
+        exit;
+    }
+}
+
+function get_time_slots($date) {
+    global $db;
+    $sql = "SELECT * FROM `appointments` ";
+    $sql .= "where `date` = '".db_escape($db, $date)."'";
+    $result = mysqli_query($db, $sql);
+    confirm_result_set($result);
+
+    $appointments =    mysqli_fetch_all($result);
+
+    $times = [];
+    for ($i=1; $i <= 7; $i++) { 
+        $add = true;
+        foreach($appointments as $appointment){
+             if(strtotime($i.":00") == strtotime($appointment[3])){
+                $add = false;    
+            } 
+        }
+        if($add){
+            $times[] = $i.':00';
+        }
+     }
+     return $times;
+}
+
+function insert_appointment_member($data) {
+    global $db;
+
+    $sql = "INSERT INTO appointments ";
+    $sql .= "(patient_id, date, time) ";
+    $sql .= "VALUES (";
+    $sql .= "'" . db_escape($db, $data['patient_id']) . "', ";
+    $sql .= "'" . db_escape($db, $data['date']) . "', ";
+    $sql .= "'" . db_escape($db, $data['time']) . "'";
+    $sql .= ")";
+    $result = mysqli_query($db, $sql);
+    if($result) {
+        return true;
+    } else {
+        echo mysqli_error($db);
+        db_disconnect($db);
+        exit;
+    }
+}
+
   ?>
 
 
